@@ -1,6 +1,6 @@
 # win-mic2mqtt
 
-exports the microphone mute state to mqtt topic and allow to set microphone mute state via mqtt topic
+exports the microphone mute state under Windows 10 to mqtt topic and allow to set microphone mute state via mqtt topic
 
 ## Prerequisites
 - [nodejs](https://nodejs.org/) (tested with v14)
