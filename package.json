@@ -1,0 +1,16 @@
+{
+  "name": "mic2mqtt",
+  "version": "1.0.0",
+  "description": "export windows microphone state to mqtt",
+  "main": "index.js",
+  "scripts": {
+    "main": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mqtt": "^4.2.6",
+    "node-powershell": "^4.0.0"
+  }
+}
