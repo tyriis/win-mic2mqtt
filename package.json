@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "mqtt": "^4.2.6",
-    "node-powershell": "^4.0.0"
+    "node-powershell": "git+https://github.com/tyriis/node-powershell.git"
   }
 }

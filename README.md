@@ -20,6 +20,7 @@ Set-Location "$($profile | Split-Path)\Modules\AudioDeviceCmdlets"
 Get-ChildItem | Unblock-File
 Import-Module AudioDeviceCmdlets
 ```
+- [pm2-installer](https://github.com/jessety/pm2-installer) if you want to autostart pm2 properly
 
 ## Install
 
@@ -28,4 +29,15 @@ install the dependencies
 ```powershell
 npm install
 ```
+
+## Run with pm2
+install with pm2-installer and run as admin
+```powershell
+pm2 start C:\Apps\win-mic2mqtt\index.js --name mic2mqtt
+```
+
+## Limitations / Known issues
+- node-powershell library does not support window hidden, currently using a fork
+- mqtt server is hardcoded to mqtt://mqtt.home, should be moved to env variable
+
 
