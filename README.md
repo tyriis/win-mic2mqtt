@@ -15,12 +15,16 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
 - [AudioDeviceCmdlets library](https://github.com/frgnca/AudioDeviceCmdlets) (the prebuild library is included inside this repository)
 ```powershell
 New-Item "$($profile | split-path)\Modules\AudioDeviceCmdlets" -Type directory -Force
-Copy-Item "C:\path\to\AudioDeviceCmdlets.dll" "$($profile | split-path)\Modules\AudioDeviceCmdlets\AudioDeviceCmdlets.dll"
+Copy-Item "C:\Apps\win-mic2mqtt\AudioDeviceCmdlets.dll" "$($profile | split-path)\Modules\AudioDeviceCmdlets\AudioDeviceCmdlets.dll"
 Set-Location "$($profile | Split-Path)\Modules\AudioDeviceCmdlets"
 Get-ChildItem | Unblock-File
 Import-Module AudioDeviceCmdlets
 ```
-- [pm2-installer](https://github.com/jessety/pm2-installer) if you want to autostart pm2 properly
+- [pm2-windows-startup](https://www.npmjs.com/package/pm2-windows-startup) if you want to autostart pm2 on login
+```powershell
+npm install pm2-windows-startup -g
+pm2-startup install
+```
 
 ## Install
 
@@ -31,9 +35,9 @@ npm install
 ```
 
 ## Run with pm2
-install with pm2-installer and run as admin
 ```powershell
-pm2 start C:\Apps\win-mic2mqtt\index.js --name mic2mqtt
+pm2 start index.js --name mic2mqtt
+pm2 save
 ```
 
 ## Limitations / Known issues
