@@ -1,8 +1,5 @@
-console.log(process.env)
-
 const Shell = require('node-powershell')
 const mqtt = require('mqtt')
-const command = `Get-AudioDevice -RecordingMute`
 const deviceName = process.env.COMPUTERNAME
 const clientId = `mic2mqtt-${deviceName}`
 const baseTopic = `mic2mqtt/${deviceName}`
@@ -18,56 +15,58 @@ const client  = mqtt.connect(mqttHost, {
     },
 })
 
-let ps
-
 let state = null
 
-function publishMute() {
-    ps = new Shell({
+function getShell() {
+    return new Shell({
         verbose: false,
         executionPolicy: 'Bypass',
         noProfile: true,
         nonInteractive: true,
     })
-    ps.addCommand(command)
+}
+
+function closeShell(ps) {
+    if (!ps) {
+        return
+    }
+    const test = ps.dispose()
+    if (test) {
+        test.then(code => {}).catch(error => { console.log(err) })
+    }
+}
+
+
+
+function publishMute() {
+    const ps = getShell()
+    ps.addCommand('Get-AudioDevice -RecordingMute')
     ps.invoke().then(output => {
+        closeShell(ps)
         if (state === output) {
-            return ps.dispose().then(code => {}).catch(error => { console.log(err) })
+            return
         }
         state = output
         console.log(output.trim())
-        client.publish(`${baseTopic}/mute`, `${output.trim()}`, {
-            qos: 0,
-            retain: false,
+        client.publish(`${baseTopic}/mute`, `${output.trim() === 'True' ? 1 : 0}`, {
+            qos: 2,
+            retain: true,
         })
-        ps.dispose().then(code => {}).catch(error => { console.log(err) })
-    })
-    .catch(err => {
-        ps.dispose().then(code => {}).catch(error => console.lor(error))
-        ps = new Shell({
-            verbose: false,
-            executionPolicy: 'Bypass',
-            noProfile: true,
-            nonInteractive: false,
-        })
-        console.log(err.message);
+    }).catch(err => {
+        closeShell(ps)
+        console.log(err);
     })
 }
 
 function setMute(value) {
-    console.log(value)
-    ps = new Shell({
-        verbose: false,
-        executionPolicy: 'Bypass',
-        noProfile: true,
-        nonInteractive: true,
-    })
+    const ps = getShell()
     ps.addCommand(`Set-AudioDevice -RecordingMute ${value ? '1' : '0'}`)
     ps.invoke().then(output => {
-        const test = ps.dispose()
-        if (test) {
-            test.then(code => {}).catch(error => { console.log(err) })
-        }
+        closeShell(ps)
+        publishMute()
+    }).catch(err => {
+        closeShell(ps)
+        console.log(err);
     })
 }
 
@@ -77,17 +76,16 @@ client.on('connect', function () {
         qos: 2,
         retain: true,
     })
-    console.log(`${baseTopic}/mute/set`)
     client.subscribe(`${baseTopic}/mute/set`, function (err, msg) {
         if (err) {
             console.log(err)
         }
     })
-    setInterval(publishMute, 500)
+    setInterval(publishMute, 1000)
 })
 
 client.on('message', function(topic, message) {
-    console.log(topic, message.toString())
+    //console.log(topic, message.toString())
     if (topic === `${baseTopic}/mute/set`) {
         const value = message.toString()
         setMute(value === '1' || value.toLowerCase() === 'true')
@@ -114,12 +112,6 @@ function handleAppExit (options, err) {
         }, function () {
             process.exit()
         })
-        if (ps) {
-            const test = ps.dispose()
-            if (test) {
-                test.then(code => {}).catch(error => { console.log(err) });
-            }
-        }
     } else {
         process.exit()
     }
@@ -141,12 +133,15 @@ process.on('exit', () => {
         cleanup: true
     })
 })
+
 process.on('SIGINT', handleAppExit.bind(null, {
     exit: true, cleanup: true
 }))
+
 process.on('SIGTERM', handleAppExit.bind(null, {
     exit: true, cleanup: true
 }))
+
 process.on('uncaughtException', handleAppExit.bind(null, {
     exit: true
 }))
